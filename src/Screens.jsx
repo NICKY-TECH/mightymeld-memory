@@ -177,15 +177,15 @@ export function PlayScreen({ end, theme, toggleTheme }) {
             </p>
           </div>
 
-          <div className="flex justify-center items-center space-x-4">
+          <div className="flex justify-center items-center space-x-4 max-[659px]:flex-col max-[659px]:space-y-4">
             <div className="rounded-full">
               <img
                 src={
-                  tryCount >= 1 && tryCount < 16
+                  tryCount >= 1 && tryCount < 18
                     ? sherlock
-                    : tryCount >= 16 && tryCount < 20
+                    : tryCount >= 18 && tryCount < 25
                     ? good
-                    : tryCount >= 20
+                    : tryCount >= 25
                     ? okay
                     : ""
                 }
@@ -193,11 +193,11 @@ export function PlayScreen({ end, theme, toggleTheme }) {
               />
             </div>
             <p className="text-white font-semibold text-2xl">
-              {tryCount >= 1 && tryCount < 16
+              {tryCount >= 1 && tryCount < 18
                 ? " Sherlock got nothing on you"
-                : tryCount >= 16 && tryCount < 20
+                : tryCount >= 18 && tryCount < 25
                 ? "You did good"
-                : tryCount >= 20
+                : tryCount >= 25
                 ? "Okay"
                 : ""}
             </p>
