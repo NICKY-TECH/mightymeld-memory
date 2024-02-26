@@ -1,4 +1,4 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import confetti from "canvas-confetti";
 import * as icons from "react-icons/gi";
 import { Tile } from "./Tile";
@@ -6,6 +6,9 @@ import sound from "./resources/turn.mp3";
 import Toggle from "./Toggle";
 import useSound from "use-sound";
 import { gridState } from "./features/grid";
+import okay from "./resources/images/okay.png";
+import good from "./resources/images/verygood.jpg";
+import sherlock from "./resources/images/sherlock1.png";
 import level, { levelState } from "./features/level";
 import { useSelector, useDispatch } from "react-redux";
 
@@ -24,7 +27,7 @@ export const possibleTileContents = [
 
 export function StartScreen({ start, theme, toggleTheme }) {
   return (
-    <div className="start h-screen w-screen">
+    <div className="start h-screen w-screen relative">
       <Toggle theme={theme} toggleTheme={toggleTheme} />
       <div className="w-full h-full flex justify-center itens-center [356px]:min-w-max start">
         <div className="h-[70%] w-[80%] flex flex-col items-center space-y-4 justify-center">
@@ -48,6 +51,7 @@ export function StartScreen({ start, theme, toggleTheme }) {
 
 export function PlayScreen({ end, theme, toggleTheme }) {
   const [tiles, setTiles] = useState(null);
+  const [show, setShow] = useState(false);
   const dispatch = useDispatch();
   const gridTotal = useSelector((state) => state.grid.value);
   console.log("grid");
@@ -55,6 +59,13 @@ export function PlayScreen({ end, theme, toggleTheme }) {
   const currentLevel = useSelector((state) => state.level.value);
   const [playSound] = useSound(sound);
   const [tryCount, setTryCount] = useState(0);
+
+  function removeOverlay() {
+    setShow(false);
+    setTimeout(() => {
+      setTimeout(end, 0);
+    }, 2000);
+  }
 
   const getTiles = (tileCount) => {
     // Throw error if count is not even.
@@ -117,13 +128,12 @@ export function PlayScreen({ end, theme, toggleTheme }) {
 
           // If all tiles are matched, the game is over.
           if (newTiles.every((tile) => tile.state === "matched")) {
-            dispatch(levelState((currentLevel+1)))
-            setTimeout(end, 0);
+            dispatch(levelState(currentLevel + 1));
+            setShow(true);
           }
           return newTiles;
         });
       }, 1000);
-    
     }
 
     setTiles((prevTiles) => {
@@ -135,8 +145,65 @@ export function PlayScreen({ end, theme, toggleTheme }) {
   };
   return (
     <>
-      <div className="play">
+      <div className="play relative">
         <Toggle theme={theme} toggleTheme={toggleTheme} />
+        <div
+          className={
+            show === false
+              ? "hidden absolute w-full h-[80%] bg-[rgba(0,0,0,0.5)] top-[80px]"
+              : "absolute w-full h-[80%] bg-[rgba(0,0,0,0.5)] top-[80px] flex flex-col space-y-6"
+          }
+        >
+          <div className="flex justify-end">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="#fff"
+              class="w-6 h-6 hover:cursor-pointer"
+              onClick={removeOverlay}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18 18 6M6 6l12 12"
+              />
+            </svg>
+          </div>
+          <div className="flex justify-center">
+            <p className="text-white text-2xl">
+              You had a total of {tryCount} trials !
+            </p>
+          </div>
+
+          <div className="flex justify-center items-center space-x-4">
+            <div className="rounded-full">
+              <img
+                src={
+                  tryCount >= 1 && tryCount < 16
+                    ? sherlock
+                    : tryCount >= 16 && tryCount < 20
+                    ? good
+                    : tryCount >= 20
+                    ? okay
+                    : ""
+                }
+                className="rounded-full w-[249px] h-[250px]"
+              />
+            </div>
+            <p className="text-white font-semibold text-2xl">
+              {tryCount >= 1 && tryCount < 16
+                ? " Sherlock got nothing on you"
+                : tryCount >= 16 && tryCount < 20
+                ? "You did good"
+                : tryCount >= 20
+                ? "Okay"
+                : ""}
+            </p>
+          </div>
+        </div>
+
         <div className="flex justify-center items-center h-screen flex-col space-y-4  max-[356px]:min-w-max">
           <div className="flex w-full space-x-2 justify-center text-indigo-400">
             <p className="font-semibold">Tries</p>
