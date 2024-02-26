@@ -1,7 +1,13 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import confetti from "canvas-confetti";
 import * as icons from "react-icons/gi";
 import { Tile } from "./Tile";
+import sound from "./resources/turn.mp3";
+import Toggle from "./Toggle";
+import useSound from "use-sound";
+import { gridState } from "./features/grid";
+import level, { levelState } from "./features/level";
+import { useSelector, useDispatch } from "react-redux";
 
 export const possibleTileContents = [
   icons.GiHearts,
@@ -16,18 +22,38 @@ export const possibleTileContents = [
   icons.GiOpenBook,
 ];
 
-export function StartScreen({ start }) {
+export function StartScreen({ start, theme, toggleTheme }) {
   return (
-    <div>
-      <button onClick={start} className="bg-gray-400 text-white p-3">
-        Play
-      </button>
+    <div className="start h-screen w-screen">
+      <Toggle theme={theme} toggleTheme={toggleTheme} />
+      <div className="w-full h-full flex justify-center itens-center [356px]:min-w-max start">
+        <div className="h-[70%] w-[80%] flex flex-col items-center space-y-4 justify-center">
+          <h1 className="text-3xl text-pink-400 font-bold text-center">
+            Memory
+          </h1>
+          <p className="text-pink-400 font-medium">
+            Flip over tiles looking for pairs
+          </p>
+          <button
+            onClick={start}
+            className="bg-pink-400 text-white p-3 rounded-full text-white font-semibold w-[70%] hover:cursor-pointer"
+          >
+            Play
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
 
-export function PlayScreen({ end }) {
+export function PlayScreen({ end, theme, toggleTheme }) {
   const [tiles, setTiles] = useState(null);
+  const dispatch = useDispatch();
+  const gridTotal = useSelector((state) => state.grid.value);
+  console.log("grid");
+  console.log(gridTotal);
+  const currentLevel = useSelector((state) => state.level.value);
+  const [playSound] = useSound(sound);
   const [tryCount, setTryCount] = useState(0);
 
   const getTiles = (tileCount) => {
@@ -91,12 +117,13 @@ export function PlayScreen({ end }) {
 
           // If all tiles are matched, the game is over.
           if (newTiles.every((tile) => tile.state === "matched")) {
+            dispatch(levelState((currentLevel+1)))
             setTimeout(end, 0);
           }
-
           return newTiles;
         });
       }, 1000);
+    
     }
 
     setTiles((prevTiles) => {
@@ -106,15 +133,32 @@ export function PlayScreen({ end }) {
       }));
     });
   };
-
   return (
     <>
-      <div>
-        {getTiles(6).map((tile, i) => (
-          <Tile key={i} flip={() => flip(i)} {...tile} />
-        ))}
+      <div className="play">
+        <Toggle theme={theme} toggleTheme={toggleTheme} />
+        <div className="flex justify-center items-center h-screen flex-col space-y-4  max-[356px]:min-w-max">
+          <div className="flex w-full space-x-2 justify-center text-indigo-400">
+            <p className="font-semibold">Tries</p>
+            <p className="font-bold bg-indigo-300 rounded-lg w-[30px] h-[25px] text-center">
+              {tryCount}
+            </p>
+          </div>
+
+          <div className="flex justify-end  text-indigo-400 font-semibold">
+            <p>
+              Level:
+              {currentLevel}
+            </p>
+          </div>
+
+          <div className="w-[90%] grid grid-rows-[repeat(4,60px)] gap-3 bg-indigo-100 h-max place-content-center py-2 rounded-lg grid-cols-[repeat(4,70px)] max-[356px]:max-w-md  max-[356px]:grid-cols-[repeat(4,30px)] max-[356px]:grid-rows-[repeat(4,20px)] max-[356px]:w-auto max-[356px]:px-2">
+            {getTiles(16).map((tile, i) => (
+              <Tile key={i} flip={() => flip(i)} {...tile} play={playSound} />
+            ))}
+          </div>
+        </div>
       </div>
-      {tryCount}
     </>
   );
 }
